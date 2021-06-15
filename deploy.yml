@@ -1,0 +1,56 @@
+---
+version: "2.0"
+
+services:
+  loadbalancer:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    expose:
+      - port: 80
+        as: 80
+        to:
+          - global: true
+    depends_on:
+      - osmosis
+
+  osmosis:
+    image: paullovette/osmosis_v102
+    command:
+      - osmo.sh
+    expose:
+      - port: 26657
+        as: 80
+        to:
+          - global: true
+      - port: 26656
+        to:
+          - global: true
+
+profiles:
+  compute:
+    osmosis:
+      resources:
+        cpu:
+          units: 1
+        memory:
+          size: 2Gi
+        storage:
+          size: 32Gi
+  placement:
+    dcloud:
+      attributes:
+        host: akash
+      signedBy:
+        anyOf:
+          - akash1365yvmc4s7awdyj3n2sav7xfx76adc6dnmlx63
+      pricing:
+        osmosis: 
+          denom: uakt
+          amount: 100
+
+deployment:
+  osmosis:
+    dcloud:
+      profile: osmosis
+      count: 8
